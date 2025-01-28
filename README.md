@@ -2,6 +2,8 @@
 
 This Python script processes a library of images and their metadata, consolidating them into a single organized structure.
 
+Guide of how to turn an Eagle library into a web hostable format: [Publishing Eagle App Library on the Web](https://ivomynttinen.com/blog/publishing-eagle-app-library-on-the-web-part-1/)
+
 ## Features
 
 - Consolidates multiple metadata.json files into a single JSON file
