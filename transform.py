@@ -113,8 +113,12 @@ def process_library():
                 new_filename = normalize_filename(file_path.name)
                 new_path = images_path / new_filename
 
-                # Move file to images directory
-                shutil.move(str(file_path), str(new_path))
+                # Copy file to images directory instead of moving
+                try:
+                    shutil.copy2(str(file_path), str(new_path))
+                except (shutil.SameFileError, OSError) as e:
+                    print(f"Warning: Could not copy {file_path}: {e}")
+                    continue
 
                 # Update metadata with new filename
                 if isinstance(metadata, dict):
@@ -139,6 +143,7 @@ def process_library():
         print(f"Skipped {skipped_files} non-image files")
     print(f"Created {len(consolidated_metadata)} metadata entries")
     print("Consolidated metadata saved to dist/metadata.json")
+    print("Original library files remain unchanged")
 
 if __name__ == '__main__':
     process_library() 

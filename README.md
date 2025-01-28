@@ -5,8 +5,9 @@ This Python script processes a library of images and their metadata, consolidati
 ## Features
 
 - Consolidates multiple metadata.json files into a single JSON file
-- Normalizes image and video filenames (removes spaces and special characters)
-- Moves all media files (except thumbnails) into a centralized images directory
+- Copies and normalizes media files to a centralized location
+- Preserves original library structure (files are copied, not moved)
+- Normalizes filenames (removes spaces and special characters)
 - Maintains relationships between metadata and media files
 - Option to process only image files, excluding other media types
 - Adds file type information to metadata
@@ -26,7 +27,7 @@ This Python script processes a library of images and their metadata, consolidati
 │           ├── metadata.json
 │           └── [image/video files]
 ├── dist/                 # Output directory (git ignored)
-│   ├── images/          # Contains all processed media files
+│   ├── images/          # Contains copies of processed media files
 │   └── metadata.json    # Consolidated metadata file
 ├── transform.py
 └── README.md
@@ -49,6 +50,7 @@ python3 transform.py
 
 The script will:
 1. Create a consolidated `metadata.json` file in the `dist` directory
-2. Move and rename all media files (except thumbnails) to the `dist/images` directory
+2. Copy and rename media files (except thumbnails) to the `dist/images` directory
 3. Update file references in the metadata to match the new file locations
 4. Add file type information to each metadata entry
+5. Leave all original files in the library directory unchanged
