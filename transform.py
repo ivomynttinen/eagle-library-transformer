@@ -14,7 +14,28 @@ def normalize_filename(filename):
     normalized = re.sub(r'[^a-zA-Z0-9-]', '', name.replace(' ', '-'))
     return f"{normalized.lower()}{ext.lower()}"
 
+def get_file_type(suffix):
+    """Determine the type of file based on its suffix."""
+    image_extensions = {
+        '.bmp', '.gif', '.heic', '.heif', '.hif', '.icns', '.ico', '.jpeg', '.jpg', 
+        '.png', '.svg', '.tif', '.tiff', '.webp', '.avif', '.base64', '.jfif', 
+        '.insp', '.jxl', '.jpe'
+    }
+    
+    if suffix.lower() in image_extensions:
+        return 'image'
+    return 'other'
+
 def process_library():
+    # Ask user if they want to process only images
+    while True:
+        images_only = input("Process only image files? (y/N): ").lower()
+        if images_only in ['y', 'n', '']:
+            break
+        print("Please enter 'y' for yes or 'n' (or press Enter) for no")
+    
+    images_only = images_only == 'y'
+    
     # Create output directories if they don't exist
     dist_path = Path('dist')
     dist_path.mkdir(exist_ok=True)
@@ -27,6 +48,8 @@ def process_library():
         return
 
     consolidated_metadata = []
+    processed_files = 0
+    skipped_files = 0
     
     # Walk through all subdirectories in the library
     for subdir in library_path.iterdir():
@@ -47,6 +70,7 @@ def process_library():
             continue
 
         # Process media files in the directory
+        has_processed_files = False
         for file_path in subdir.iterdir():
             if file_path.name == 'metadata.json':
                 continue
@@ -55,7 +79,14 @@ def process_library():
             if 'thumbnail' in file_path.name.lower():
                 continue
 
-            # Check if it's a media file (all file types that Eagle supports [https://en.eagle.cool/article/184-what-file-formats-does-eagle-support])
+            file_type = get_file_type(file_path.suffix)
+            
+            # Skip non-image files if images_only is True
+            if images_only and file_type != 'image':
+                skipped_files += 1
+                continue
+
+            # Check if it's a supported media file
             if file_path.suffix.lower() in [
                 # Images
                 '.bmp', '.gif', '.heic', '.heif', '.hif', '.icns', '.ico', '.jpeg', '.jpg', '.png', '.svg', '.tif', '.tiff', '.ttf', '.webp', '.avif', '.base64', '.jfif', '.insp', '.jxl', '.jpe',
@@ -88,17 +119,25 @@ def process_library():
                 # Update metadata with new filename
                 if isinstance(metadata, dict):
                     metadata['filename'] = new_filename
+                    metadata['file_type'] = file_type
                 else:
                     print(f"Warning: Unexpected metadata format in {metadata_file}")
+                
+                has_processed_files = True
+                processed_files += 1
 
-        consolidated_metadata.append(metadata)
+        if has_processed_files:
+            consolidated_metadata.append(metadata)
 
     # Write consolidated metadata
     with open(dist_path / 'metadata.json', 'w') as f:
         json.dump(consolidated_metadata, f, indent=2)
 
-    print("Processing complete!")
-    print(f"Processed {len(consolidated_metadata)} metadata files")
+    print("\nProcessing complete!")
+    print(f"Processed {processed_files} files")
+    if images_only:
+        print(f"Skipped {skipped_files} non-image files")
+    print(f"Created {len(consolidated_metadata)} metadata entries")
     print("Consolidated metadata saved to dist/metadata.json")
 
 if __name__ == '__main__':
